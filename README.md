@@ -16,7 +16,8 @@
 
 1. 下载脚本
 ```bash
-wget https://raw.githubusercontent.com/your-repo/setup_rivalz.sh
+git clone https://github.com/mumumusf/rivalz.ai.git
+cd rivalz.ai
 chmod +x setup_rivalz.sh
 ```
 
@@ -91,11 +92,12 @@ npm --version
 
 ### 3. 下载和运行脚本
 ```bash
-# 下载脚本
-wget https://raw.githubusercontent.com/your-repo/setup_rivalz.sh
-chmod +x setup_rivalz.sh
+# 克隆仓库
+git clone https://github.com/mumumusf/rivalz.ai.git
+cd rivalz.ai
 
-# 运行脚本
+# 设置权限并运行
+chmod +x setup_rivalz.sh
 sudo ./setup_rivalz.sh
 ```
 
@@ -225,7 +227,7 @@ screen -r rivalz
 如果遇到问题：
 1. 查看监控日志 `rivalz> monitor`
 2. 检查系统资源 `rivalz> system`
-3. 在 GitHub 提交 Issue
+3. 在 [GitHub Issues](https://github.com/mumumusf/rivalz.ai/issues) 提交问题
 
 ## 许可证
 
