@@ -44,8 +44,8 @@ npm -v   # 确认 npm 已安装
 
 ### 2. 安装 Rivalz CLI
 ```bash
-# 全局安装 rivalz-node-cli
-npm install -g rivalz-node-cli
+# 全局安装 rivalz-node-cli (Linux/Mac 需要 sudo)
+sudo npm install -g rivalz-node-cli
 
 # 验证安装
 rivalz --version
@@ -73,41 +73,44 @@ rivalz run
 
 ## 持久化运行
 
-为了确保程序持续运行，我们使用 pm2 进行管理：
+为了确保程序持续运行，我们使用 screen 进行管理：
 
-### 1. 安装 pm2
+### 1. 安装 screen
 ```bash
-npm install -g pm2
+sudo apt install screen
 ```
 
-### 2. 使用 pm2 启动 Rivalz
+### 2. 创建并启动会话
 ```bash
-pm2 start rivalz --name rivalz -- run
+# 创建新的 screen 会话
+screen -S rivalz
+
+# 在 screen 会话中运行 Rivalz
+rivalz run
 ```
 
-### 3. 管理命令
+### 3. 管理 screen 会话
 ```bash
-# 查看运行状态
-pm2 status
+# 分离会话（保持程序运行）
+# 先按 Ctrl + A，然后按 D
 
-# 查看日志
-pm2 logs rivalz
+# 查看所有会话
+screen -ls
 
-# 重启程序
-pm2 restart rivalz
+# 重新连接到会话
+screen -r rivalz
 
-# 停止程序
-pm2 stop rivalz
-
-# 删除程序
-pm2 delete rivalz
+# 结束会话（如果需要）
+# 重新连接后输入 exit 或按 Ctrl+D
 ```
 
-### 4. 设置开机自启
-```bash
-pm2 startup
-pm2 save
-```
+### 4. 常见 screen 操作
+- `Ctrl + A` 然后 `D`: 分离会话
+- `Ctrl + A` 然后 `C`: 创建新窗口
+- `Ctrl + A` 然后 `N`: 切换到下一个窗口
+- `Ctrl + A` 然后 `P`: 切换到上一个窗口
+- `Ctrl + A` 然后 `K`: 杀死当前窗口
+- `Ctrl + A` 然后 `?`: 显示帮助
 
 ## 常见问题
 
@@ -150,12 +153,11 @@ rivalz help
 
 ## 日志查看
 ```bash
-# 使用 pm2 查看日志
-pm2 logs rivalz
+# 重新连接到 screen 会话查看输出
+screen -r rivalz
 
-# 或直接查看日志文件
-tail -f ~/.pm2/logs/rivalz-out.log
-tail -f ~/.pm2/logs/rivalz-error.log
+# 如果只想查看日志文件
+tail -f rivalz.log
 ```
 
 ## 注意事项
@@ -163,8 +165,8 @@ tail -f ~/.pm2/logs/rivalz-error.log
 1. 保持系统时间准确
 2. 确保网络稳定
 3. 定期检查系统资源使用情况
-4. 建议使用 pm2 进行进程管理
-5. 定期检查更新：`rivalz update-version`
+4. 定期检查更新：`rivalz update-version`
+5. 定期查看运行状态：`screen -r rivalz`
 
 ## 支持与帮助
 
