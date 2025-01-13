@@ -378,19 +378,87 @@ main() {
     
     # 获取钱包地址
     read -p "请输入您的钱包地址: " WALLET_ADDRESS
+    log "INFO" "输入的钱包地址: $WALLET_ADDRESS"
+
+    # 验证钱包地址格式
     if [[ ! $WALLET_ADDRESS =~ ^0x[a-fA-F0-9]{40}$ ]]; then
-        handle_error "无效的钱包地址格式"
+        log "ERROR" "无效的钱包地址格式"
+        exit 1
     fi
-    
-    # 启动监控
-    log "INFO" "正在启动监控程序..."
-    monitor_and_restart &
-    
-    # 保存监控进程PID
-    echo $! > monitor.pid
-    
-    # 启动交互式控制台
-    start_console
+
+    log "INFO" "钱包地址验证通过"
+
+    # 检查 npm 是否安装
+    if ! command -v npm &> /dev/null; then
+        log "ERROR" "npm 未安装，请先安装 Node.js"
+        exit 1
+    fi
+
+    # 显示 npm 版本
+    log "INFO" "npm 版本: $(npm -v)"
+
+    # 清理 npm 缓存
+    log "INFO" "清理 npm 缓存..."
+    npm cache clean --force
+
+    # 设置 npm 源为官方源
+    log "INFO" "设置 npm 源..."
+    npm config set registry https://registry.npmjs.org/
+
+    # 尝试安装 rivalz-node-cli
+    log "INFO" "正在安装 rivalz-node-cli..."
+    npm install -g rivalz-node-cli --verbose 2>&1 | tee npm_install.log || {
+        log "ERROR" "安装 rivalz-node-cli 失败"
+        log "ERROR" "安装日志已保存到 npm_install.log"
+        log "ERROR" "请检查以下问题："
+        log "ERROR" "1. 网络连接是否正常"
+        log "ERROR" "2. npm 源是否可访问"
+        log "ERROR" "3. 是否有足够的磁盘空间"
+        exit 1
+    }
+
+    # 验证安装
+    if ! command -v rivalz &> /dev/null; then
+        log "ERROR" "rivalz 命令未找到，安装可能失败"
+        log "ERROR" "请尝试手动运行: npm install -g rivalz-node-cli"
+        exit 1
+    fi
+
+    # 显示安装的版本
+    RIVALZ_VERSION=$(rivalz --version 2>&1 || echo "未知")
+    log "INFO" "rivalz-node-cli 安装成功，版本: $RIVALZ_VERSION"
+
+    # 创建配置目录
+    mkdir -p ~/.rivalz || {
+        log "ERROR" "创建配置目录失败"
+        exit 1
+    }
+
+    # 保存钱包地址到配置
+    echo "WALLET_ADDRESS=$WALLET_ADDRESS" > ~/.rivalz/wallet.conf || {
+        log "ERROR" "保存钱包配置失败"
+        exit 1
+    }
+
+    log "INFO" "钱包配置已保存"
+
+    # 启动客户端
+    log "INFO" "正在启动 Rivalz 客户端..."
+    rivalz run --wallet $WALLET_ADDRESS > rivalz.log 2>&1 &
+    CLIENT_PID=$!
+
+    # 等待确认客户端是否成功启动
+    sleep 5
+    if ! ps -p $CLIENT_PID > /dev/null; then
+        log "ERROR" "客户端启动失败，请检查 rivalz.log"
+        cat rivalz.log
+        exit 1
+    fi
+
+    log "INFO" "客户端启动成功，PID: $CLIENT_PID"
+    log "INFO" "运行日志: $(pwd)/rivalz.log"
+    log "INFO" "监控日志: $(pwd)/rivalz_monitor.log"
+    log "INFO" "npm 安装日志: $(pwd)/npm_install.log"
 }
 
 # 启动主程序
